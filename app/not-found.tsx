@@ -1,7 +1,6 @@
-// import { useRouter } from 'next/navigation';
-// import { useEffect } from 'react';
-import css from './not-found.module.css';
-import type { Metadata } from 'next';
+// app/not-found.tsx
+import { Metadata } from 'next';
+import css from './Home.module.css';
 
 export const metadata: Metadata = {
   title: 'Page Not Found',
@@ -21,17 +20,9 @@ export const metadata: Metadata = {
   },
 };
 
-
 const NotFound = () => {
-  // const router = useRouter();
-
-  // useEffect(() => {
-  //   const timer = setTimeout(() => router.push('/'), 3000);
-  //   return () => clearTimeout(timer);
-  // }, [router]);
-
   return (
-    <div className={css.container}>
+    <div>
       <h1 className={css.title}>404 - Page not found</h1>
       <p className={css.description}>
         Sorry, the page you are looking for does not exist.

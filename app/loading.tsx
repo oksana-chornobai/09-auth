@@ -1,16 +1,7 @@
-import css from './loading.module.css';
+// app/loading.tsx
 
 const Loading = () => {
-  return (
-    <div className={css.container}>
-      <div className={css.loader}>
-        <div className={css.dot}></div>
-        <div className={css.dot}></div>
-        <div className={css.dot}></div>
-      </div>
-      <p className={css.text}>Loading notes...</p>
-    </div>
-  );
+  return <p>Loading, please wait...</p>;
 };
 
 export default Loading;

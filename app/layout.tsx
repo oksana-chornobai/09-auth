@@ -1,15 +1,16 @@
-import TanStackProvider from '@/components/TanStackProvider/TanStackProvider';
+import type { Metadata } from 'next';
+import { Roboto } from 'next/font/google';
+import './globals.css';
 import Header from '@/components/Header/Header';
 import Footer from '@/components/Footer/Footer';
-import './globals.css';
-import { Roboto } from 'next/font/google';
-import type { Metadata } from 'next';
+import TanStackProvider from '@/components/TanStackProvider/TanStackProvider';
+import AuthProvider from '@/components/AuthProvider/AuthProvider';
 
 const roboto = Roboto({
-  weight: ['300', '400', '500', '700'],
-  subsets: ['latin', 'cyrillic'],
-  display: 'swap',
+  subsets: ['latin'],
+  weight: ['400', '700'],
   variable: '--font-roboto',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -36,20 +37,22 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
   modal,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-  modal?: React.ReactNode;
-}) {
+  modal: React.ReactNode;
+}>) {
   return (
-    <html lang="en" className={roboto.variable}>
-      <body>
+    <html lang="en">
+      <body className={`${roboto.variable}`}>
         <TanStackProvider>
-          <Header />
-          <main>
-            {children}
-            {modal}
-          </main>
-          <Footer />
+          <AuthProvider>
+            <Header />
+            <main>
+              {children}
+              {modal}
+            </main>
+            <Footer />
+          </AuthProvider>
         </TanStackProvider>
       </body>
     </html>

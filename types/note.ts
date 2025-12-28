@@ -1,12 +1,8 @@
-import { TAGS } from '@/lib/constants';
-
 export interface Note {
   id: string;
   title: string;
   content: string;
+  tag: 'Todo' | 'Work' | 'Personal' | 'Meeting' | 'Shopping';
   createdAt: string;
   updatedAt: string;
-  tag: NoteTag;
 }
-
-export type NoteTag = (typeof TAGS)[number];

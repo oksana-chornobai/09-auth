@@ -1,62 +1,51 @@
-'use client';
+// components/NoteList/NoteList.tsx
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Note } from '@/types/note';
-import { useState } from 'react';
-import { deleteNote } from '@/lib/api';
 import css from './NoteList.module.css';
+import { type Note } from '../../types/note';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { deleteNote } from '@/lib/api/clientApi';
+import { toast } from 'react-hot-toast';
+import Loading from '@/app/loading';
 import Link from 'next/link';
 
 interface NoteListProps {
   notes: Note[];
 }
 
-const NoteList = ({ notes }: NoteListProps) => {
+export default function NoteList({ notes }: NoteListProps) {
   const queryClient = useQueryClient();
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => deleteNote(id),
-    onMutate: (id: string) => {
-      setDeletingId(id);
+  const toBeDeletedNote = useMutation({
+    mutationFn: (id: Note['id']) => deleteNote(id),
+    onSuccess: () => {
+      toast('Note deleted!', { duration: 1500, position: 'bottom-center' });
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
-    onSettled: () => setDeletingId(null),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['notes'] }),
   });
 
-  const handleDelete = (id: string) => {
-    if (
-      typeof window !== 'undefined' &&
-      window.confirm('Are you sure you want to delete this note?')
-    ) {
-      deleteMutation.mutate(id);
-    }
+  const handleToBeDeletedNote = (id: Note['id']) => {
+    toBeDeletedNote.mutate(id);
   };
 
   return (
     <ul className={css.list}>
-      {notes.map((note) => (
-        <li className={css.listItem} key={note.id}>
+      {notes.map((note: Note) => (
+        <li key={note.id} className={css.listItem}>
+          {toBeDeletedNote.isPending && <Loading />}
           <h2 className={css.title}>{note.title}</h2>
           <p className={css.content}>{note.content}</p>
           <div className={css.footer}>
-            <Link href={`/notes/${note.id}`} className={css.link}>
-              View details
-            </Link>
             <span className={css.tag}>{note.tag}</span>
+            <Link href={`/notes/${note.id}`}>View details</Link>
             <button
               className={css.button}
-              aria-label={`Delete note ${note.title}`}
-              onClick={() => handleDelete(note.id)}
-              disabled={deletingId === note.id}
+              onClick={() => handleToBeDeletedNote(note.id)}
             >
-              {deletingId === note.id ? 'Deleting...' : 'Delete'}
+              Delete
             </button>
           </div>
         </li>
       ))}
     </ul>
   );
-};
-
-export default NoteList;
+}

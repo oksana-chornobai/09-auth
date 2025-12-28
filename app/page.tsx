@@ -1,7 +1,6 @@
-import css from './page.module.css';
-import Link from 'next/link';
+import css from './Home.module.css';
 
-const HomePage = () => {
+export default function Home() {
   return (
     <main>
       <div className={css.container}>
@@ -17,12 +16,7 @@ const HomePage = () => {
           NoteHub offers a streamlined experience for anyone who values clarity
           and productivity.
         </p>
-        <p>
-          <Link href="/notes">Go to Notes →</Link>
-        </p>
       </div>
     </main>
   );
-};
-
-export default HomePage;
+}

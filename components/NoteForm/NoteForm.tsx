@@ -1,174 +1,121 @@
 'use client';
 
-import {
-  Formik,
-  Form,
-  Field,
-  ErrorMessage,
-  FieldProps,
-  FormikHelpers,
-} from 'formik';
-import type { NoteTag } from '@/types/note';
-import * as Yup from 'yup';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useId } from 'react';
-import { createNote } from '@/lib/api';
-import css from './NoteForm.module.css';
-import { useNoteDraftStore } from '@/lib/store/noteStore';
+import { useState, useId } from 'react';
 import { useRouter } from 'next/navigation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
+import { initialDraft, useDraftNoteStore } from '@/lib/store/noteStore';
+import css from './NoteForm.module.css';
+import { createNote, CreateNoteData } from '@/lib/api/clientApi';
+import Loading from '@/app/loading';
 
-const TAGS = ['Todo', 'Work', 'Personal', 'Meeting', 'Shopping'] as const;
+const tagsList = ['Work', 'Personal', 'Meeting', 'Shopping', 'Todo'];
 
-interface NoteFormProps {
-  onClose?: () => void;
-  onSuccess?: () => void;
-}
-
-interface NoteFormValues {
-  title: string;
-  content: string;
-  tag: NoteTag | string;
-}
-
-const validationSchema = Yup.object({
-  title: Yup.string()
-    .min(3, 'Title too short')
-    .max(50, 'Title is too long')
-    .required('Title is required'),
-  content: Yup.string().max(500, 'Content is too long'),
-  tag: Yup.mixed<NoteTag>()
-    .oneOf(TAGS as readonly NoteTag[])
-    .required('Tag is required'),
-});
-
-const NoteForm = ({ onClose, onSuccess }: NoteFormProps) => {
-  const router = useRouter();
-  const queryClient = useQueryClient();
+export default function NoteForm() {
+  const [isDisabled, setIsDisabled] = useState(false);
   const fieldId = useId();
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const { draft, setDraft, clearDraft } = useDraftNoteStore();
 
-  const { draft, setDraft, clearDraft } = useNoteDraftStore();
+  const handleInput = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
+    setDraft({
+      ...draft,
+      [e.target.name]: e.target.value,
+    });
+  };
 
-  const { mutateAsync, isPending } = useMutation({
+  const newNote = useMutation({
     mutationFn: createNote,
     onSuccess: () => {
+      toast.success('Note added!', { position: 'bottom-center' });
       queryClient.invalidateQueries({ queryKey: ['notes'] });
       clearDraft();
-      onSuccess?.();
-      if (onClose) onClose();
-      else router.push('/notes/filter/all');
+      router.push('/notes/filter/all');
     },
   });
 
-  const handleSubmit = async (
-    values: NoteFormValues,
-    actions: FormikHelpers<NoteFormValues>,
-  ) => {
-    await mutateAsync(values);
-    actions.resetForm();
+  const handleSubmit = (formData: FormData) => {
+    if (formData) {
+      const values = Object.fromEntries(formData) as unknown as CreateNoteData;
+      setIsDisabled(!isDisabled);
+      newNote.mutate(values);
+    }
   };
 
-  const initialDraftValues: NoteFormValues = {
-    title: draft?.title ?? '',
-    content: draft?.content ?? '',
-    tag: (draft?.tag as NoteTag) ?? 'Todo',
-  };
+  const handleCancel = () => router.push('/notes/filter/all');
 
   return (
-    <Formik
-      initialValues={initialDraftValues}
-      enableReinitialize
-      validationSchema={validationSchema}
-      onSubmit={handleSubmit}
-      validateOnMount
-    >
-      {({ isValid, dirty }) => (
-        <Form className={css.form} noValidate>
-          <div className={css.formGroup}>
-            <label htmlFor={`${fieldId}-title`}>Title</label>
-            <Field name="title">
-              {({ field }: FieldProps) => (
-                <input
-                  {...field}
-                  id={`${fieldId}-title`}
-                  className={css.input}
-                  onChange={(e) => {
-                    field.onChange(e);
-                    setDraft({ title: e.target.value });
-                  }}
-                />
-              )}
-            </Field>
-            <ErrorMessage name="title" component="span" className={css.error} />
-          </div>
-          <div className={css.formGroup}>
-            <label htmlFor={`${fieldId}-content`}>Content</label>
-            <Field name="content">
-              {({ field }: FieldProps) => (
-                <textarea
-                  {...field}
-                  id={`${fieldId}-content`}
-                  className={css.textarea}
-                  rows={8}
-                  onChange={(e) => {
-                    field.onChange(e);
-                    setDraft({ content: e.target.value });
-                  }}
-                />
-              )}
-            </Field>
-            <ErrorMessage
-              name="content"
-              component="span"
-              className={css.error}
-            />
-          </div>
-          <div className={css.formGroup}>
-            <label htmlFor={`${fieldId}-tag`}>Tag</label>
-            <Field name="tag">
-              {({ field }: FieldProps) => (
-                <select
-                  {...field}
-                  id={`${fieldId}-tag`}
-                  className={css.select}
-                  onChange={(e) => {
-                    field.onChange(e);
-                    setDraft({ tag: e.target.value as NoteTag });
-                  }}
-                >
-                  {TAGS.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </Field>
-            <ErrorMessage name="tag" component="span" className={css.error} />
-          </div>
+    <>
+      <form className={css.form} action={handleSubmit}>
+        <div className={css.formGroup}>
+          <label htmlFor={`${fieldId}-title`}>Title</label>
+          <input
+            id={`${fieldId}-title`}
+            type="text"
+            name="title"
+            className={css.input}
+            value={draft?.title ?? initialDraft.title}
+            onChange={handleInput}
+            minLength={3}
+            maxLength={50}
+            required
+          />
+        </div>
 
-          <div className={css.actions}>
-            <button
-              type="button"
-              className={css.cancelButton}
-              onClick={() => {
-                if (onClose) onClose();
-                else router.push('/notes/filter/all');
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className={css.submitButton}
-              disabled={isPending || !isValid}
-            >
-              {isPending ? 'Creating...' : 'Create note'}
-            </button>
-          </div>
-        </Form>
-      )}
-    </Formik>
+        <div className={css.formGroup}>
+          <label htmlFor={`${fieldId}-content`}>Content</label>
+          <textarea
+            id={`${fieldId}-content`}
+            name="content"
+            rows={8}
+            className={css.textarea}
+            value={draft?.content ?? initialDraft.content}
+            onChange={handleInput}
+            maxLength={500}
+          />
+        </div>
+
+        <div className={css.formGroup}>
+          <label htmlFor={`${fieldId}-tag`}>Tag</label>
+          <select
+            id={`${fieldId}-tag`}
+            name="tag"
+            className={css.select}
+            value={draft.tag ?? initialDraft.tag}
+            onChange={handleInput}
+            required
+          >
+            {tagsList.map((tag, i) => (
+              <option key={i} value={tag}>
+                {tag}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className={css.actions}>
+          <button
+            type="button"
+            className={css.cancelButton}
+            onClick={handleCancel}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className={css.submitButton}
+            disabled={isDisabled}
+          >
+            Create note
+          </button>
+        </div>
+      </form>
+      {newNote.isPending && <Loading />}
+    </>
   );
-};
-
-export default NoteForm;
+}
