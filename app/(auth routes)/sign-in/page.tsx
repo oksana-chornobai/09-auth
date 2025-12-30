@@ -6,7 +6,10 @@ import { ApiError } from '@/lib/api/api';
 import { useAuthStore } from '@/lib/store/authStore';
 import css from './SignInPage.module.css';
 
+
+
 const SignIn = () => {
+  
   const router = useRouter();
   const [error, setError] = useState('');
   const setUser = useAuthStore(state => state.setUser);

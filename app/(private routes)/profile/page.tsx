@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 import css from './ProfilePage.module.css';
 import { getMe } from '@/lib/api/serverApi';
+import { proxy } from '@/app/proxy';
+
 
 export const metadata: Metadata = {
   title: `Profile`,
@@ -24,6 +26,8 @@ export const metadata: Metadata = {
 };
 
 const Profile = async () => {
+  await proxy('/profile');
+
   const user = await getMe();
 
   return (

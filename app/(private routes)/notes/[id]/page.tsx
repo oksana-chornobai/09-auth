@@ -8,6 +8,8 @@ import {
 } from '@tanstack/react-query';
 import { fetchNoteById } from '@/lib/api/serverApi';
 import NoteDetailsClient from './NoteDetails.client';
+import { proxy } from '@/app/proxy';
+
 
 interface NoteProps {
   params: Promise<{ id: string }>;
@@ -38,6 +40,8 @@ export async function generateMetadata({
 }
 
 const NoteDetails = async ({ params }: NoteProps) => {
+  await proxy('/notes');
+
   const { id } = await params;
   const queryClient = new QueryClient();
 
@@ -54,3 +58,4 @@ const NoteDetails = async ({ params }: NoteProps) => {
 };
 
 export default NoteDetails;
+

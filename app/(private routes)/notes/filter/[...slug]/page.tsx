@@ -8,6 +8,8 @@ import {
 } from '@tanstack/react-query';
 import { fetchNotes } from '@/lib/api/serverApi';
 import NotesClient from './Notes.client';
+import { proxy } from '@/app/proxy';
+
 
 interface NotesProps {
   params: Promise<{ slug: string[] }>;
@@ -36,7 +38,9 @@ export async function generateMetadata({
   };
 }
 
+
 const Notes = async ({ params }: NotesProps) => {
+  await proxy('/notes');
   const queryClient = new QueryClient();
   const { slug } = await params;
   const tag = slug[0] === 'all' ? '' : slug[0];
@@ -56,3 +60,4 @@ const Notes = async ({ params }: NotesProps) => {
 };
 
 export default Notes;
+
