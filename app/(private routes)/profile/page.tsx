@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 import css from './ProfilePage.module.css';
 import { getMe } from '@/lib/api/serverApi';
-import { proxy } from '@/app/proxy';
+import { proxy } from '@/proxy';
 
 
 export const metadata: Metadata = {

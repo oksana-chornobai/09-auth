@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-query';
 import { fetchNoteById } from '@/lib/api/serverApi';
 import NoteDetailsClient from './NoteDetails.client';
-import { proxy } from '@/app/proxy';
+import { proxy } from '@/proxy';
 
 
 interface NoteProps {

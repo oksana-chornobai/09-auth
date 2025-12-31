@@ -1,4 +1,4 @@
-// app/proxy.ts
+// proxy.ts
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { checkSession } from '@/lib/api/serverApi';
@@ -12,8 +12,16 @@ export async function proxy(pathname: string) {
   const accessToken = cookieStore.get('accessToken')?.value;
   const refreshToken = cookieStore.get('refreshToken')?.value;
 
-  const isPrivate = PRIVATE_ROUTES.some(r => pathname.startsWith(r));
-  const isAuth = AUTH_ROUTES.some(r => pathname.startsWith(r));
+  const safePathname = typeof pathname === 'string' ? pathname : String(pathname);
+
+
+  const isPrivate = PRIVATE_ROUTES.some(r =>
+  safePathname.startsWith(r)
+);
+
+const isAuth = AUTH_ROUTES.some(r =>
+  safePathname.startsWith(r)
+);
 
   // ❌ неавторизований
   if (!accessToken) {
